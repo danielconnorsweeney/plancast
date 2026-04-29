@@ -1,23 +1,40 @@
+import { useState } from "react";
 import "./App.css";
 
 function App() {
+  const [city, setCity] = useState("");
+  const [searchedCity, setSearchedCity] = useState("");
+
+  function handleSearch(event) {
+    event.preventDefault();
+
+    const trimmedCity = city.trim();
+
+    if (!trimmedCity) {
+      return;
+    }
+
+    setSearchedCity(trimmedCity);
+    setCity("");
+  }
+
   return (
     <main className="app">
       <section className="hero">
         <div className="hero-content">
           <p className="eyebrow">Weather-based activity planning</p>
 
-          <h1>Plan your day around the forecast.</h1>
+          <h1>Check the forecast before making outdoor plans.</h1>
 
           <p className="hero-description">
-            PlanCast helps you check the weather, save favorite locations, and
-            decide whether your outdoor activities are a good idea based on
-            temperature, rain, and wind conditions.
+            PlanCast helps you look up weather conditions and decide whether the
+            forecast is suitable for activities like walking, running, biking, or
+            commuting.
           </p>
 
           <div className="hero-actions">
             <a href="#search" className="primary-button">
-              Check the weather
+              Search a city
             </a>
             <a href="#features" className="secondary-button">
               View features
@@ -28,7 +45,7 @@ function App() {
         <div className="weather-card" aria-label="Sample weather card">
           <div className="weather-card-header">
             <div>
-              <p className="card-label">Today in Toronto</p>
+              <p className="card-label">Example forecast</p>
               <h2>18°C</h2>
             </div>
             <span className="weather-badge">Good for walking</span>
@@ -56,15 +73,33 @@ function App() {
           <p className="section-label">City search</p>
           <h2>Start with a location</h2>
           <p>
-            This search form will later connect to the Open-Meteo API so users
-            can look up real weather forecasts.
+            Enter a city to prepare the search flow. The next step will connect
+            this form to live weather data.
           </p>
         </div>
 
-        <form className="search-form">
-          <input type="text" placeholder="Enter a city, e.g. Toronto" />
-          <button type="submit">Search</button>
-        </form>
+        <div>
+          <form className="search-form" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Enter a city, e.g. Toronto"
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+            />
+            <button type="submit">Search</button>
+          </form>
+
+          {searchedCity && (
+            <div className="search-result">
+              <p className="section-label">Selected city</p>
+              <h3>{searchedCity}</h3>
+              <p>
+                Weather results for {searchedCity} will appear here once the API
+                is connected.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="features" id="features">
