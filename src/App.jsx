@@ -3,19 +3,51 @@ import "./App.css";
 
 function App() {
   const [city, setCity] = useState("");
-  const [searchedCity, setSearchedCity] = useState("");
+  const [location, setLocation] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("");
 
-  function handleSearch(event) {
+  async function handleSearch(event) {
     event.preventDefault();
 
     const trimmedCity = city.trim();
 
     if (!trimmedCity) {
+      setStatusMessage("Please enter a city name.");
+      setLocation(null);
       return;
     }
 
-    setSearchedCity(trimmedCity);
-    setCity("");
+    try {
+      setStatusMessage("Searching for city...");
+      setLocation(null);
+
+      const response = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          trimmedCity,
+        )}&count=1&language=en&format=json`,
+      );
+
+      if (!response.ok) {
+        throw new Error("City search failed.");
+      }
+
+      const data = await response.json();
+      const firstResult = data.results?.[0];
+
+      if (!firstResult) {
+        setStatusMessage("No city found. Try a larger nearby city.");
+        return;
+      }
+
+      setLocation(firstResult);
+      setStatusMessage("");
+      setCity("");
+    } catch (error) {
+      setStatusMessage(
+        "Something went wrong while searching. Please try again.",
+      );
+      setLocation(null);
+    }
   }
 
   return (
@@ -28,8 +60,8 @@ function App() {
 
           <p className="hero-description">
             PlanCast helps you look up weather conditions and decide whether the
-            forecast is suitable for activities like walking, running, biking, or
-            commuting.
+            forecast is suitable for activities like walking, running, biking,
+            or commuting.
           </p>
 
           <div className="hero-actions">
@@ -73,14 +105,19 @@ function App() {
           <p className="section-label">City search</p>
           <h2>Start with a location</h2>
           <p>
-            Enter a city to prepare the search flow. The next step will connect
-            this form to live weather data.
+            Enter a city to find its location details. These coordinates will be
+            used to request live weather data in the next step.
           </p>
         </div>
 
         <div>
           <form className="search-form" onSubmit={handleSearch}>
+            <label className="sr-only" htmlFor="city-search">
+              City
+            </label>
             <input
+              id="city-search"
+              name="city"
               type="text"
               placeholder="Enter a city, e.g. Toronto"
               value={city}
@@ -89,14 +126,27 @@ function App() {
             <button type="submit">Search</button>
           </form>
 
-          {searchedCity && (
+          {statusMessage && <p className="status-message">{statusMessage}</p>}
+
+          {location && (
             <div className="search-result">
-              <p className="section-label">Selected city</p>
-              <h3>{searchedCity}</h3>
-              <p>
-                Weather results for {searchedCity} will appear here once the API
-                is connected.
-              </p>
+              <p className="section-label">Selected location</p>
+              <h3>
+                {location.name}
+                {location.admin1 ? `, ${location.admin1}` : ""}
+              </h3>
+              <p>{location.country}</p>
+
+              <div className="location-details">
+                <div>
+                  <span>Latitude</span>
+                  <strong>{location.latitude}</strong>
+                </div>
+                <div>
+                  <span>Longitude</span>
+                  <strong>{location.longitude}</strong>
+                </div>
+              </div>
             </div>
           )}
         </div>
