@@ -254,6 +254,20 @@ h1 {
   line-height: 1.6;
 }
 
+.result-header {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.current-temp {
+  color: var(--color-primary);
+  font-size: 2.5rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .location-details {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

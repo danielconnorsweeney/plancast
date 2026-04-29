@@ -4,6 +4,7 @@ import "./App.css";
 function App() {
   const [city, setCity] = useState("");
   const [location, setLocation] = useState(null);
+  const [weather, setWeather] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
 
   async function handleSearch(event) {
@@ -14,32 +15,47 @@ function App() {
     if (!trimmedCity) {
       setStatusMessage("Please enter a city name.");
       setLocation(null);
+      setWeather(null);
       return;
     }
 
     try {
       setStatusMessage("Searching for city...");
       setLocation(null);
+      setWeather(null);
 
-      const response = await fetch(
+      const locationResponse = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
           trimmedCity,
         )}&count=1&language=en&format=json`,
       );
 
-      if (!response.ok) {
+      if (!locationResponse.ok) {
         throw new Error("City search failed.");
       }
 
-      const data = await response.json();
-      const firstResult = data.results?.[0];
+      const locationData = await locationResponse.json();
+      const firstResult = locationData.results?.[0];
 
       if (!firstResult) {
         setStatusMessage("No city found. Try a larger nearby city.");
         return;
       }
 
+      setStatusMessage("Loading weather data...");
+
+      const weatherResponse = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${firstResult.latitude}&longitude=${firstResult.longitude}&current=temperature_2m,precipitation,wind_speed_10m&timezone=auto`,
+      );
+
+      if (!weatherResponse.ok) {
+        throw new Error("Weather request failed.");
+      }
+
+      const weatherData = await weatherResponse.json();
+
       setLocation(firstResult);
+      setWeather(weatherData.current);
       setStatusMessage("");
       setCity("");
     } catch (error) {
@@ -47,6 +63,7 @@ function App() {
         "Something went wrong while searching. Please try again.",
       );
       setLocation(null);
+      setWeather(null);
     }
   }
 
@@ -105,8 +122,8 @@ function App() {
           <p className="section-label">City search</p>
           <h2>Start with a location</h2>
           <p>
-            Enter a city to find its location details. These coordinates will be
-            used to request live weather data in the next step.
+            Enter a city to find its location details and view current weather
+            conditions.
           </p>
         </div>
 
@@ -115,6 +132,7 @@ function App() {
             <label className="sr-only" htmlFor="city-search">
               City
             </label>
+
             <input
               id="city-search"
               name="city"
@@ -123,19 +141,29 @@ function App() {
               value={city}
               onChange={(event) => setCity(event.target.value)}
             />
+
             <button type="submit">Search</button>
           </form>
 
           {statusMessage && <p className="status-message">{statusMessage}</p>}
 
-          {location && (
+          {location && weather && (
             <div className="search-result">
-              <p className="section-label">Selected location</p>
-              <h3>
-                {location.name}
-                {location.admin1 ? `, ${location.admin1}` : ""}
-              </h3>
-              <p>{location.country}</p>
+              <p className="section-label">Current weather</p>
+
+              <div className="result-header">
+                <div>
+                  <h3>
+                    {location.name}
+                    {location.admin1 ? `, ${location.admin1}` : ""}
+                  </h3>
+                  <p>{location.country}</p>
+                </div>
+
+                <strong className="current-temp">
+                  {Math.round(weather.temperature_2m)}°C
+                </strong>
+              </div>
 
               <div className="location-details">
                 <div>
@@ -145,6 +173,14 @@ function App() {
                 <div>
                   <span>Longitude</span>
                   <strong>{location.longitude}</strong>
+                </div>
+                <div>
+                  <span>Rain</span>
+                  <strong>{weather.precipitation} mm</strong>
+                </div>
+                <div>
+                  <span>Wind</span>
+                  <strong>{Math.round(weather.wind_speed_10m)} km/h</strong>
                 </div>
               </div>
             </div>
