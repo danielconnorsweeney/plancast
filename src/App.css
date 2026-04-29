@@ -248,6 +248,24 @@ h1 {
   line-height: 1.6;
 }
 
+.recommendation-card {
+  margin-top: 18px;
+  border: 1px solid var(--color-soft-border);
+  border-radius: 22px;
+  padding: 18px;
+  background: var(--color-background);
+}
+
+.recommendation-card h4 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.recommendation-card p:last-child {
+  margin-bottom: 0;
+  color: var(--color-muted);
+}
+
 .status-message {
   margin: 14px 0 0;
   color: var(--color-muted);
@@ -266,6 +284,12 @@ h1 {
   font-size: 2.5rem;
   line-height: 1;
   white-space: nowrap;
+}
+
+.weather-condition {
+  margin-bottom: 0;
+  color: var(--color-muted);
+  font-weight: 600;
 }
 
 .location-details {

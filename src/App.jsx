@@ -1,11 +1,87 @@
 import { useState } from "react";
 import "./App.css";
 
+function getWeatherCondition(code) {
+  const weatherCodes = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Slight snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    80: "Slight rain showers",
+    81: "Moderate rain showers",
+    82: "Violent rain showers",
+    95: "Thunderstorm",
+  };
+
+  return weatherCodes[code] || "Weather data unavailable";
+}
+
+function getWalkingRecommendation(weather) {
+  if (!weather) {
+    return null;
+  }
+
+  let score = 100;
+
+  if (weather.temperature_2m < 5 || weather.temperature_2m > 28){
+    score -= 25;
+  }
+
+  const rainyWeatherCodes = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95];
+
+  if (
+    weather.precipitation > 0 ||
+    weather.rain > 0 ||
+    weather.showers > 0 ||
+    rainyWeatherCodes.includes(weather.weather_code)
+  ) {
+    score -= 30;
+  }
+
+  if (weather.wind_speed_10m > 25) {
+    score -= 20;
+  }
+
+  if (score >= 80) {
+    return {
+      score,
+      label: "Good for walking",
+    };
+  }
+
+  if (score >= 60) {
+    return {
+      score,
+      label: "Okay for walking",
+    };
+  }
+
+  return {
+    score,
+    label: "Not ideal for walking",
+  };
+}
+
 function App() {
   const [city, setCity] = useState("");
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const walkingRecommendation = getWalkingRecommendation(weather);
+  const weatherCondition = weather
+    ? getWeatherCondition(weather.weather_code)
+    : "";
 
   async function handleSearch(event) {
     event.preventDefault();
@@ -45,7 +121,7 @@ function App() {
       setStatusMessage("Loading weather data...");
 
       const weatherResponse = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${firstResult.latitude}&longitude=${firstResult.longitude}&current=temperature_2m,precipitation,wind_speed_10m&timezone=auto`,
+        `https://api.open-meteo.com/v1/forecast?latitude=${firstResult.latitude}&longitude=${firstResult.longitude}&current=temperature_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&timezone=auto`,
       );
 
       if (!weatherResponse.ok) {
@@ -146,7 +222,6 @@ function App() {
           </form>
 
           {statusMessage && <p className="status-message">{statusMessage}</p>}
-
           {location && weather && (
             <div className="search-result">
               <p className="section-label">Current weather</p>
@@ -158,6 +233,7 @@ function App() {
                     {location.admin1 ? `, ${location.admin1}` : ""}
                   </h3>
                   <p>{location.country}</p>
+                  <p className="weather-condition">{weatherCondition}</p>
                 </div>
 
                 <strong className="current-temp">
@@ -170,19 +246,43 @@ function App() {
                   <span>Latitude</span>
                   <strong>{location.latitude}</strong>
                 </div>
+
                 <div>
                   <span>Longitude</span>
                   <strong>{location.longitude}</strong>
                 </div>
+
                 <div>
-                  <span>Rain</span>
+                  <span>Condition</span>
+                  <strong>{weatherCondition}</strong>
+                </div>
+
+                <div>
+                  <span>Precipitation</span>
                   <strong>{weather.precipitation} mm</strong>
                 </div>
+
+                <div>
+                  <span>Rain</span>
+                  <strong>{weather.rain} mm</strong>
+                </div>
+
                 <div>
                   <span>Wind</span>
                   <strong>{Math.round(weather.wind_speed_10m)} km/h</strong>
                 </div>
               </div>
+
+              {walkingRecommendation && (
+                <div className="recommendation-card">
+                  <p className="section-label">Activity recommendation</p>
+                  <h4>{walkingRecommendation.label}</h4>
+                  <p>
+                    Walking score:{" "}
+                    <strong>{walkingRecommendation.score}/100</strong>
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
