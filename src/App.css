@@ -266,6 +266,62 @@ h1 {
   color: var(--color-muted);
 }
 
+.forecast-section {
+  margin-top: 22px;
+}
+
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.forecast-card {
+  border: 1px solid var(--color-soft-border);
+  border-radius: 18px;
+  padding: 14px;
+  background: var(--color-surface);
+}
+
+.forecast-card h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.forecast-card p {
+  min-height: 40px;
+  margin-bottom: 14px;
+  color: var(--color-muted);
+  line-height: 1.4;
+}
+
+.forecast-card div {
+  margin-top: 10px;
+}
+
+.forecast-card span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.forecast-card strong {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 860px) {
+  .forecast-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .forecast-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .status-message {
   margin: 14px 0 0;
   color: var(--color-muted);

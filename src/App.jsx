@@ -77,8 +77,11 @@ function App() {
   const [city, setCity] = useState("");
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
+  const [dailyForecast, setDailyForecast] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
   const walkingRecommendation = getWalkingRecommendation(weather);
+  
+  
   const weatherCondition = weather
     ? getWeatherCondition(weather.weather_code)
     : "";
@@ -92,6 +95,7 @@ function App() {
       setStatusMessage("Please enter a city name.");
       setLocation(null);
       setWeather(null);
+      setDailyForecast([]);
       return;
     }
 
@@ -99,6 +103,7 @@ function App() {
       setStatusMessage("Searching for city...");
       setLocation(null);
       setWeather(null);
+      setDailyForecast([]);
 
       const locationResponse = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
@@ -121,7 +126,7 @@ function App() {
       setStatusMessage("Loading weather data...");
 
       const weatherResponse = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${firstResult.latitude}&longitude=${firstResult.longitude}&current=temperature_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&timezone=auto`,
+        `https://api.open-meteo.com/v1/forecast?latitude=${firstResult.latitude}&longitude=${firstResult.longitude}&current=temperature_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=5`,
       );
 
       if (!weatherResponse.ok) {
@@ -130,16 +135,27 @@ function App() {
 
       const weatherData = await weatherResponse.json();
 
+      const formattedDailyForecast = weatherData.daily.time.map((date, index) => ({
+        date,
+        condition: getWeatherCondition(weatherData.daily.weather_code[index]),
+        high: Math.round(weatherData.daily.temperature_2m_max[index]),
+        low: Math.round(weatherData.daily.temperature_2m_min[index]),
+        precipitation: weatherData.daily.precipitation_sum[index],
+        precipitationChance: weatherData.daily.precipitation_probability_max[index],
+      }));
+
       setLocation(firstResult);
       setWeather(weatherData.current);
+      setDailyForecast(formattedDailyForecast);
       setStatusMessage("");
       setCity("");
-    } catch (error) {
+    } catch  {
       setStatusMessage(
         "Something went wrong while searching. Please try again.",
       );
       setLocation(null);
       setWeather(null);
+      setDailyForecast([]);
     }
   }
 
@@ -281,6 +297,46 @@ function App() {
                     Walking score:{" "}
                     <strong>{walkingRecommendation.score}/100</strong>
                   </p>
+                </div>
+              )}
+
+              {dailyForecast.length > 0 && (
+                <div className="forecast-section">
+                  <p className="section-label">5-day forecast</p>
+
+                  <div className="forecast-grid">
+                    {dailyForecast.map((day) => (
+                      <article className="forecast-card" key={day.date}>
+                        <h4>
+                          {new Date(`${day.date}T00:00`).toLocaleDateString(
+                            "en-CA",
+                            {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
+                        </h4>
+                        <p>{day.condition}</p>
+                        <div>
+                          <span>High</span>
+                          <strong>{day.high}°C</strong>
+                        </div>
+                        <div>
+                          <span>Low</span>
+                          <strong>{day.low}°C</strong>
+                        </div>
+                        <div>
+                          <span>Rain chance</span>
+                          <strong>{day.precipitationChance}%</strong>
+                        </div>
+                        <div>
+                          <span>Precipitation</span>
+                          <strong>{day.precipitation} mm</strong>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
