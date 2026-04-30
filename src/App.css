@@ -228,6 +228,31 @@ h1 {
   outline: 3px solid var(--focus-ring);
 }
 
+.recent-searches {
+  margin-top: 18px;
+}
+
+.recent-search-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.recent-search-list button {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.recent-search-list button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 .activity-field {
   margin-top: 14px;
 }

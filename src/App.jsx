@@ -133,6 +133,7 @@ function getActivityRecommendation(weather, activityKey) {
 
 function App() {
   const [city, setCity] = useState("");
+  const [recentSearches, setRecentSearches] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState("walking");
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
@@ -147,6 +148,30 @@ function App() {
   const weatherCondition = weather
     ? getWeatherCondition(weather.weather_code)
     : "";
+
+    function saveRecentSearch(locationResult) {
+      const searchLabel = locationResult.admin1
+        ? `${locationResult.name}, ${locationResult.admin1}`
+        : locationResult.name;
+
+      setRecentSearches((currentSearches) => {
+        const filteredSearches = currentSearches.filter(
+          (search) => search.label !== searchLabel,
+        );
+
+        return [
+          {
+            label: searchLabel,
+            name: locationResult.name,
+          },
+          ...filteredSearches,
+        ].slice(0, 5);
+      });
+    }
+
+    function handleRecentSearch(searchName) {
+      setCity(searchName);
+    }
 
   async function handleSearch(event) {
     event.preventDefault();
@@ -210,6 +235,7 @@ function App() {
       setWeather(weatherData.current);
       setDailyForecast(formattedDailyForecast);
       setStatusMessage("");
+      saveRecentSearch(firstResult);
       setCity("");
     } catch  {
       setStatusMessage(
@@ -291,8 +317,26 @@ function App() {
             onSubmit={handleSearch}
           />
 
+          {recentSearches.length > 0 && (
+            <div className="recent-searches">
+              <p className="section-label">Recent searches</p>
+
+              <div className="recent-search-list">
+                {recentSearches.map((search) => (
+                  <button
+                    key={search.label}
+                    type="button"
+                    onClick={() => handleRecentSearch(search.name)}
+                  >
+                    {search.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {statusMessage && <p className="status-message">{statusMessage}</p>}
-          
+
           <WeatherResults
             location={location}
             weather={weather}
