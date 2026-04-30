@@ -1,6 +1,5 @@
 import { useState } from "react";
-import ForecastList from "./components/ForecastList";
-import RecommendationCard from "./components/RecommendationCard";
+import WeatherResults from "./components/WeatherResults";
 import SearchForm from "./components/SearchForm";
 import "./App.css";
 
@@ -293,67 +292,16 @@ function App() {
           />
 
           {statusMessage && <p className="status-message">{statusMessage}</p>}
-          {location && weather && (
-            <div className="search-result">
-              <p className="section-label">Current weather</p>
-
-              <div className="result-header">
-                <div>
-                  <h3>
-                    {location.name}
-                    {location.admin1 ? `, ${location.admin1}` : ""}
-                  </h3>
-                  <p>{location.country}</p>
-                  <p className="weather-condition">{weatherCondition}</p>
-                </div>
-
-                <strong className="current-temp">
-                  {Math.round(weather.temperature_2m)}°C
-                </strong>
-              </div>
-
-              <div className="location-details">
-                <div>
-                  <span>Latitude</span>
-                  <strong>{location.latitude}</strong>
-                </div>
-
-                <div>
-                  <span>Longitude</span>
-                  <strong>{location.longitude}</strong>
-                </div>
-
-                <div>
-                  <span>Condition</span>
-                  <strong>{weatherCondition}</strong>
-                </div>
-
-                <div>
-                  <span>Precipitation</span>
-                  <strong>{weather.precipitation} mm</strong>
-                </div>
-
-                <div>
-                  <span>Rain</span>
-                  <strong>{weather.rain} mm</strong>
-                </div>
-
-                <div>
-                  <span>Wind</span>
-                  <strong>{Math.round(weather.wind_speed_10m)} km/h</strong>
-                </div>
-              </div>
-
-              <RecommendationCard
-                activityRecommendation={activityRecommendation}
-                selectedActivity={selectedActivity}
-                activityOptions={activityOptions}
-              />
-
-              <ForecastList dailyForecast={dailyForecast} />
-              
-            </div>
-          )}
+          
+          <WeatherResults
+            location={location}
+            weather={weather}
+            weatherCondition={weatherCondition}
+            activityRecommendation={activityRecommendation}
+            selectedActivity={selectedActivity}
+            activityOptions={activityOptions}
+            dailyForecast={dailyForecast}
+          />
         </div>
       </section>
 
