@@ -1,4 +1,5 @@
 import { useState } from "react";
+import RecommendationCard from "./components/RecommendationCard";
 import SearchForm from "./components/SearchForm";
 import "./App.css";
 
@@ -281,39 +282,14 @@ function App() {
         </div>
 
         <div>
-          <form className="search-form" onSubmit={handleSearch}>
-            <label className="sr-only" htmlFor="city-search">
-              City
-            </label>
-
-            <input
-              id="city-search"
-              name="city"
-              type="text"
-              placeholder="Enter a city, e.g. Toronto"
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-            />
-
-            <button type="submit">Search</button>
-          </form>
-
-          <div className="activity-field">
-            <label htmlFor="activity-select">Activity</label>
-            <select
-              id="activity-select"
-              name="activity"
-              value={selectedActivity}
-              onChange={(event) => setSelectedActivity(event.target.value)}
-            >
-              {Object.entries(activityOptions).map(([key, activity]) => (
-                <option key={key} value={key}>
-                  {activity.label}
-                </option>
-              ))}
-            </select>
-      
-          </div>
+          <SearchForm
+            city={city}
+            selectedActivity={selectedActivity}
+            activityOptions={activityOptions}
+            onCityChange={setCity}
+            onActivityChange={setSelectedActivity}
+            onSubmit={handleSearch}
+          />
 
           {statusMessage && <p className="status-message">{statusMessage}</p>}
           {location && weather && (
@@ -367,21 +343,11 @@ function App() {
                 </div>
               </div>
 
-              {activityRecommendation && (
-                <div className="reccomendation-card">
-                  <p className="section-label">Activity reccomendation</p>
-                  <h4>{activityRecommendation.label}</h4>
-                  <p>
-                    {activityOptions[selectedActivity].label} score:{" "}
-                    <strong>{activityRecommendation.score}/100</strong>
-                  </p>
-                  <ul className="recommendation-reasons">
-                    {activityRecommendation.reasons.map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <RecommendationCard
+                activityRecommendation={activityRecommendation}
+                selectedActivity={selectedActivity}
+                activityOptions={activityOptions}
+              />
 
               {dailyForecast.length > 0 && (
                 <div className="forecast-section">
