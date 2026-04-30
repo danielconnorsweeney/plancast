@@ -27,16 +27,54 @@ function getWeatherCondition(code) {
   return weatherCodes[code] || "Weather data unavailable";
 }
 
-function getWalkingRecommendation(weather) {
+const activityOptions = {
+  walking: {
+    label: "Walking",
+    minTemp: 0,
+    maxTemp: 30,
+    maxWind: 30,
+  },
+  running: {
+    label: "Running",
+    minTemp: 5,
+    maxTemp: 24,
+    maxWind: 25,
+  },
+  biking: {
+    label: "Biking",
+    minTemp: 8,
+    maxTemp: 26,
+    maxWind: 22,
+  },
+  commuting: {
+    label: "Commuting",
+    minTemp: 8,
+    maxTemp: 26,
+    maxWind: 22,
+  },
+  studyingOutside: {
+    label: "Studying outside",
+    minTemp: 15,
+    maxTemp: 27,
+    maxWind: 18,
+  }
+};
+
+function getActivityRecommendation(weather, activityKey) {
   if (!weather) {
     return null;
   }
+  const activity = activityOptions[activityKey];
 
   let score = 100;
 
-  if (weather.temperature_2m < 5 || weather.temperature_2m > 28){
+  if (
+    weather.temperature_2m < activity.minTemp ||
+    weather.temperature_2m > activity.maxTemp
+  ) {
     score -= 25;
   }
+  
 
   const rainyWeatherCodes = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95];
 
@@ -49,37 +87,41 @@ function getWalkingRecommendation(weather) {
     score -= 30;
   }
 
-  if (weather.wind_speed_10m > 25) {
+  if (weather.wind_speed_10m > activity.maxWind) {
     score -= 20;
   }
 
   if (score >= 80) {
     return {
       score,
-      label: "Good for walking",
+      label: `Good for ${activity.label.toLowerCase()}`,
     };
   }
 
   if (score >= 60) {
     return {
       score,
-      label: "Okay for walking",
+      label: `Okay for ${activity.label.toLowerCase()}`,
     };
   }
 
   return {
     score,
-    label: "Not ideal for walking",
+    label: `Not ideal for ${activity.label.toLowerCase()}`,
   };
 }
 
 function App() {
   const [city, setCity] = useState("");
+  const [selectedActivity, setSelectedActivity] = useState("walking");
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
   const [dailyForecast, setDailyForecast] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
-  const walkingRecommendation = getWalkingRecommendation(weather);
+  const activityRecommendation = getActivityRecommendation(
+    weather,
+    selectedActivity
+  );
   
   
   const weatherCondition = weather
@@ -237,6 +279,23 @@ function App() {
             <button type="submit">Search</button>
           </form>
 
+          <div className="activity-field">
+            <label htmlFor="activity-select">Activity</label>
+            <select
+              id="activity-select"
+              name="activity"
+              value={selectedActivity}
+              onChange={(event) => setSelectedActivity(event.target.value)}
+            >
+              {Object.entries(activityOptions).map(([key, activity]) => (
+                <option key={key} value={key}>
+                  {activity.label}
+                </option>
+              ))}
+            </select>
+      
+          </div>
+
           {statusMessage && <p className="status-message">{statusMessage}</p>}
           {location && weather && (
             <div className="search-result">
@@ -289,15 +348,15 @@ function App() {
                 </div>
               </div>
 
-              {walkingRecommendation && (
-                <div className="recommendation-card">
-                  <p className="section-label">Activity recommendation</p>
-                  <h4>{walkingRecommendation.label}</h4>
+              {activityRecommendation && (
+                <div className="reccomendation-card">
+                  <p className="section-label">Activity reccomendation</p>
+                  <h4>{activityRecommendation.label}</h4>
                   <p>
-                    Walking score:{" "}
-                    <strong>{walkingRecommendation.score}/100</strong>
+                    {activityOptions[selectedActivity].label} score:{" "}
+                    <strong>{activityRecommendation.score}/100</strong>
                   </p>
-                </div>
+                  </div>
               )}
 
               {dailyForecast.length > 0 && (
