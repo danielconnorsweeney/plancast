@@ -149,6 +149,40 @@ function App() {
     ? getWeatherCondition(weather.weather_code)
     : "";
 
+    async function loadWeatherForLocation(locationResult) {
+      setStatusMessage("Loading weather data...");
+      setLocation(null);
+      setWeather(null);
+      setDailyForecast([]);
+
+      const weatherResponse = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${locationResult.latitude}&longitude=${locationResult.longitude}&current=temperature_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=5`,
+      );
+
+      if (!weatherResponse.ok) {
+        throw new Error("Weather request failed.");
+      }
+
+      const weatherData = await weatherResponse.json();
+
+      const formattedDailyForecast = weatherData.daily.time.map(
+        (date, index) => ({
+          date,
+          condition: getWeatherCondition(weatherData.daily.weather_code[index]),
+          high: Math.round(weatherData.daily.temperature_2m_max[index]),
+          low: Math.round(weatherData.daily.temperature_2m_min[index]),
+          precipitation: weatherData.daily.precipitation_sum[index],
+          precipitationChance:
+            weatherData.daily.precipitation_probability_max[index],
+        }),
+      );
+
+      setLocation(locationResult);
+      setWeather(weatherData.current);
+      setDailyForecast(formattedDailyForecast);
+      setStatusMessage("");
+    }
+
     function saveRecentSearch(locationResult) {
       const searchLabel = locationResult.admin1
         ? `${locationResult.name}, ${locationResult.admin1}`
@@ -163,14 +197,27 @@ function App() {
           {
             label: searchLabel,
             name: locationResult.name,
+            latitude: locationResult.latitude,
+            longitude: locationResult.longitude,
+            admin1: locationResult.admin1,
+            country: locationResult.country,
           },
           ...filteredSearches,
         ].slice(0, 5);
       });
     }
 
-    function handleRecentSearch(searchName) {
-      setCity(searchName);
+    async function handleRecentSearch(savedSearch) {
+      try {
+        await loadWeatherForLocation(savedSearch);
+        saveRecentSearch(savedSearch);
+        setCity("");
+      } catch {
+        setStatusMessage("Something went wrong while loading this saved city.");
+        setLocation(null);
+        setWeather(null);
+        setDailyForecast([]);
+      }
     }
 
   async function handleSearch(event) {
@@ -210,31 +257,7 @@ function App() {
         return;
       }
 
-      setStatusMessage("Loading weather data...");
-
-      const weatherResponse = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${firstResult.latitude}&longitude=${firstResult.longitude}&current=temperature_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=5`,
-      );
-
-      if (!weatherResponse.ok) {
-        throw new Error("Weather request failed.");
-      }
-
-      const weatherData = await weatherResponse.json();
-
-      const formattedDailyForecast = weatherData.daily.time.map((date, index) => ({
-        date,
-        condition: getWeatherCondition(weatherData.daily.weather_code[index]),
-        high: Math.round(weatherData.daily.temperature_2m_max[index]),
-        low: Math.round(weatherData.daily.temperature_2m_min[index]),
-        precipitation: weatherData.daily.precipitation_sum[index],
-        precipitationChance: weatherData.daily.precipitation_probability_max[index],
-      }));
-
-      setLocation(firstResult);
-      setWeather(weatherData.current);
-      setDailyForecast(formattedDailyForecast);
-      setStatusMessage("");
+      await loadWeatherForLocation(firstResult);
       saveRecentSearch(firstResult);
       setCity("");
     } catch  {
@@ -326,7 +349,7 @@ function App() {
                   <button
                     key={search.label}
                     type="button"
-                    onClick={() => handleRecentSearch(search.name)}
+                    onClick={() => handleRecentSearch(search)}
                   >
                     {search.label}
                   </button>
