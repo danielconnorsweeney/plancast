@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SearchForm from "./components/SearchForm";
 import "./App.css";
 
 function getWeatherCondition(code) {
@@ -103,7 +104,7 @@ function getActivityRecommendation(weather, activityKey) {
     score -= 20;
     reasons.push("Wind speed is higher than recommended for this activity.");
   } else {
-    reasons.push("wind speed is acceptable for this activity.");
+    reasons.push("Wind speed is acceptable for this activity.");
   }
 
   if (score >= 80) {
