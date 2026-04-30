@@ -292,6 +292,17 @@ h1 {
   color: var(--color-muted);
 }
 
+.recommendation-reasons {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.recommendation-reasons li + li {
+  margin-top: 6px;
+}
+
 .forecast-section {
   margin-top: 22px;
 }

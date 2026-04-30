@@ -68,11 +68,20 @@ function getActivityRecommendation(weather, activityKey) {
 
   let score = 100;
 
-  if (
+  const reasons = [];
+
+  if (activityKey === "running" && weather.temperature_2m > 30) {
+    score -= 50;
+    reasons.push("Temperature is very high for running.");
+  }
+  else if (
     weather.temperature_2m < activity.minTemp ||
     weather.temperature_2m > activity.maxTemp
   ) {
     score -= 25;
+    reasons.push("Temperature is outside the ideal range for this activity.");
+  } else {
+    reasons.push("Temperature is suitable for this activity.");
   }
   
 
@@ -85,16 +94,23 @@ function getActivityRecommendation(weather, activityKey) {
     rainyWeatherCodes.includes(weather.weather_code)
   ) {
     score -= 30;
+    reasons.push("Rain or wet conditions may affect this activity.");
+  } else {
+    reasons.push("No active rain is currently reported.");
   }
 
   if (weather.wind_speed_10m > activity.maxWind) {
     score -= 20;
+    reasons.push("Wind speed is higher than recommended for this activity.");
+  } else {
+    reasons.push("wind speed is acceptable for this activity.");
   }
 
   if (score >= 80) {
     return {
       score,
       label: `Good for ${activity.label.toLowerCase()}`,
+      reasons,
     };
   }
 
@@ -102,12 +118,14 @@ function getActivityRecommendation(weather, activityKey) {
     return {
       score,
       label: `Okay for ${activity.label.toLowerCase()}`,
+      reasons,
     };
   }
 
   return {
     score,
     label: `Not ideal for ${activity.label.toLowerCase()}`,
+    reasons,
   };
 }
 
@@ -356,7 +374,12 @@ function App() {
                     {activityOptions[selectedActivity].label} score:{" "}
                     <strong>{activityRecommendation.score}/100</strong>
                   </p>
-                  </div>
+                  <ul className="recommendation-reasons">
+                    {activityRecommendation.reasons.map((reason) => (
+                      <li key={reason}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               {dailyForecast.length > 0 && (
