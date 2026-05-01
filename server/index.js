@@ -18,6 +18,36 @@ app.get("/api/health", (request, response) => {
     });
 });
 
+app.get("/api/geocode", async (request, response) => {
+    const { city } = request.query;
+
+    if (!city) {
+        return response.status(400).json({
+            message: "City name is required",
+        });
+    }
+
+    try {
+        const geocodeResponse = await fetch(
+           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+        city,
+      )}&count=1&language=en&format=json`,  
+    );
+
+    if (!geocodeResponse.ok) {
+        throw new Error("Open-Meteo geocoding request failed.");
+    }
+
+    const geocodeData = await geocodeResponse.json();
+
+    response.json(geocodeData);
+    } catch {
+        response.status(500).json({
+            message: "Unable to search for that city.",
+        });
+    }
+});
+
 app.get("/api/weather", async (request, response) => {
     const { latitude, longitude } = request.query;
 

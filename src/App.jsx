@@ -271,9 +271,7 @@ function App() {
       setDailyForecast([]);
 
       const locationResponse = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-          trimmedCity,
-        )}&count=1&language=en&format=json`,
+        `http://localhost:5000/api/geocode?city=${encodeURIComponent(trimmedCity)}`,
       );
 
       if (!locationResponse.ok) {
