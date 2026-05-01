@@ -180,7 +180,7 @@ function App() {
       setDailyForecast([]);
 
       const weatherResponse = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${locationResult.latitude}&longitude=${locationResult.longitude}&current=temperature_2m,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=5`,
+        `http://localhost:5000/api/weather?latitude=${locationResult.latitude}&longitude=${locationResult.longitude}`,
       );
 
       if (!weatherResponse.ok) {
