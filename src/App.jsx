@@ -3,6 +3,8 @@ import WeatherResults from "./components/WeatherResults";
 import SearchForm from "./components/SearchForm";
 import "./App.css";
 
+const RECENT_SEARCHES_STORAGE_KEY = "plancastRecentSearches";
+
 function getWeatherCondition(code) {
   const weatherCodes = {
     0: "Clear sky",
@@ -133,12 +135,18 @@ function getActivityRecommendation(weather, activityKey) {
 
 function App() {
   const [city, setCity] = useState("");
-  const [recentSearches, setRecentSearches] = useState([]);
+  const [recentSearches, setRecentSearches] = useState(() => {
+    const savedSearches = localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY);
+
+    return savedSearches ? JSON.parse(savedSearches) : [];
+  });
   const [selectedActivity, setSelectedActivity] = useState("walking");
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
   const [dailyForecast, setDailyForecast] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
+
+  
   const activityRecommendation = getActivityRecommendation(
     weather,
     selectedActivity
@@ -193,7 +201,7 @@ function App() {
           (search) => search.label !== searchLabel,
         );
 
-        return [
+        const updatedSearches = [
           {
             label: searchLabel,
             name: locationResult.name,
@@ -204,6 +212,13 @@ function App() {
           },
           ...filteredSearches,
         ].slice(0, 5);
+
+        localStorage.setItem(
+          RECENT_SEARCHES_STORAGE_KEY,
+          JSON.stringify(updatedSearches),
+        );
+
+        return updatedSearches;
       });
     }
 
