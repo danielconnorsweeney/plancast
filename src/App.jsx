@@ -145,6 +145,7 @@ function App() {
   const [weather, setWeather] = useState(null);
   const [dailyForecast, setDailyForecast] = useState([]);
   const [statusMessage, setStatusMessage] = useState("");
+  const [backendStatus, setBackendStatus] = useState("Checking backend...");
 
   
   const activityRecommendation = getActivityRecommendation(
@@ -156,6 +157,21 @@ function App() {
   const weatherCondition = weather
     ? getWeatherCondition(weather.weather_code)
     : "";
+
+    async function checkBackendStatus(){
+      try {
+        const response = await fetch("http://localhost:5000/api/health");
+
+        if (!response.ok) {
+          throw new Error("Backend health check failed.");
+        }
+
+        const data = await response.json();
+        setBackendStatus(data.message);
+      } catch {
+        setBackendStatus("Backend is not conncted.");
+      }
+    }
 
     async function loadWeatherForLocation(locationResult) {
       setStatusMessage("Loading weather data...");
@@ -306,7 +322,16 @@ function App() {
             <a href="#features" className="secondary-button">
               View features
             </a>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={checkBackendStatus}
+              >
+                Check backend
+              </button>
           </div>
+
+          <p className="backend-status">{backendStatus}</p>
         </div>
 
         <div className="weather-card" aria-label="Sample weather card">
