@@ -3,6 +3,8 @@ import WeatherResults from "./components/WeatherResults";
 import SearchForm from "./components/SearchForm";
 import "./App.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const RECENT_SEARCHES_STORAGE_KEY = "plancastRecentSearches";
 
 function getWeatherCondition(code) {
@@ -160,7 +162,7 @@ function App() {
 
     async function checkBackendStatus(){
       try {
-        const response = await fetch("http://localhost:5000/api/health");
+        const response = await fetch(`${API_BASE_URL}/api/health`);
 
         if (!response.ok) {
           throw new Error("Backend health check failed.");
@@ -180,7 +182,7 @@ function App() {
       setDailyForecast([]);
 
       const weatherResponse = await fetch(
-        `http://localhost:5000/api/weather?latitude=${locationResult.latitude}&longitude=${locationResult.longitude}`,
+        `${API_BASE_URL}/api/weather?latitude=${locationResult.latitude}&longitude=${locationResult.longitude}`,
       );
 
       if (!weatherResponse.ok) {
@@ -271,7 +273,7 @@ function App() {
       setDailyForecast([]);
 
       const locationResponse = await fetch(
-        `http://localhost:5000/api/geocode?city=${encodeURIComponent(trimmedCity)}`,
+        `${API_BASE_URL}/api/geocode?city=${encodeURIComponent(trimmedCity)}`,
       );
 
       if (!locationResponse.ok) {
