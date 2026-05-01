@@ -6,6 +6,7 @@ import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+let savedCities = [];
 
 app.use(
     cors({
@@ -23,6 +24,60 @@ app.get("/api/health", (request, response) => {
         status: "ok",
         message: "PlanCast backend is running",
     });
+});
+
+app.get("/api/saved-cities", (request, response) => {
+    response.json(savedCities);
+});
+
+app.post("/api/saved-cities", (request, response) => {
+    const { name, admin1, country, latitude, longitude } = request.body;
+
+    if (!name || !country || !latitude || !longitude) {
+        return response.status(400).json({
+            message: "City name, country, latitude, and longitude are required",
+        });
+    }
+
+    const cityLabel = [name, admin1, country].filter(Boolean).join(", ");
+
+    const cityAlreadySaved = savedCities.some((city) => city.label === cityLabel);
+
+    if (cityAlreadySaved) {
+        return response.status(409).json({
+            message: "City is already saved.",
+        });
+    }
+
+    const newCity = {
+        id: crypto.randomUUID(),
+        label: cityLabel,
+        name,
+        admin1,
+        country,
+        latitude,
+        longitude,
+    };
+
+    savedCities.push(newCity, ...savedCities);
+
+    response.status(201).json(newCity);
+});
+
+app.delete("/api/saved-cities/:id", (request, response) => {
+  const { id } = request.params;
+
+  const cityExists = savedCities.some((city) => city.id === id);
+
+  if (!cityExists) {
+    return response.status(404).json({
+      message: "Saved city not found.",
+    });
+  }
+
+  savedCities = savedCities.filter((city) => city.id !== id);
+
+  response.status(204).send();
 });
 
 app.get("/api/geocode", async (request, response) => {
