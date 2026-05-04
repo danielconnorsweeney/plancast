@@ -214,14 +214,16 @@ function App() {
           }),
         }); 
 
+        const data = await response.json();
+
         if (!response.ok) {
-          throw new Error("Save city request failed.");
+          throw new Error(data.message || "Unable to save this city");
         }
 
         await loadSavedCities();
         setStatusMessage("City saved");
-      } catch {
-        setStatusMessage("Unable to save this city");
+      } catch (error) {
+        setStatusMessage(error.message);
       }
     }
 
