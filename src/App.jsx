@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import WeatherResults from "./components/WeatherResults";
 import SearchForm from "./components/SearchForm";
 import "./App.css";
@@ -142,6 +142,7 @@ function App() {
 
     return savedSearches ? JSON.parse(savedSearches) : [];
   });
+  const [savedCities, setSavedCities] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState("walking");
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
@@ -149,7 +150,10 @@ function App() {
   const [statusMessage, setStatusMessage] = useState("");
   const [backendStatus, setBackendStatus] = useState("Checking backend...");
 
-  
+  useEffect(() => {
+    loadSavedCities();
+  }, []);
+
   const activityRecommendation = getActivityRecommendation(
     weather,
     selectedActivity
@@ -172,6 +176,52 @@ function App() {
         setBackendStatus(data.message);
       } catch {
         setBackendStatus("Backend is not conncted.");
+      }
+    }
+
+    async function loadSavedCities() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/saved-cities`);
+
+        if (!response.ok) {
+          throw new Error ("Saved cities request failed.");
+        }
+
+        const data = await response.json();
+        setSavedCities(data);
+      } catch {
+        setStatusMessage("Unable to load saved cities. Please try again later.");
+      }
+    }
+
+    async function saveCurrentCity() {
+      if (!location) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/saved-cities`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: location.name,
+            admin1: location.admin1,
+            country: location.country,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }),
+        }); 
+
+        if (!response.ok) {
+          throw new Error("Save city request failed.");
+        }
+
+        await loadSavedCities();
+        setStatusMessage("City saved");
+      } catch {
+        setStatusMessage("Unable to save this city");
       }
     }
 
@@ -398,6 +448,24 @@ function App() {
             </div>
           )}
 
+          {savedCities.length > 0 && (
+            <div className="saved-cities">
+              <p className="section-label">Saved cities</p>
+
+              <div className="recent-search-list">
+                {savedCities.map((savedCity) => (
+                  <button
+                    key={savedCity.id}
+                    type="button"
+                    onClick={() => handleRecentSearch(savedCity)}
+                    >
+                      {savedCity.label}
+                    </button>
+                ))}
+              </div>
+              </div>
+          )}
+
           {statusMessage && <p className="status-message">{statusMessage}</p>}
 
           <WeatherResults
@@ -408,6 +476,7 @@ function App() {
             selectedActivity={selectedActivity}
             activityOptions={activityOptions}
             dailyForecast={dailyForecast}
+            onSaveCity={saveCurrentCity}
           />
         </div>
       </section>

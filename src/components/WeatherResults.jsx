@@ -9,6 +9,7 @@ function WeatherResults({
   selectedActivity,
   activityOptions,
   dailyForecast,
+  onSaveCity,
 }) {
   if (!location || !weather) {
     return null;
@@ -28,9 +29,15 @@ function WeatherResults({
           <p className="weather-condition">{weatherCondition}</p>
         </div>
 
-        <strong className="current-temp">
-          {Math.round(weather.temperature_2m)}°C
-        </strong>
+        <div className="result-action">
+          <strong className="current-temp">
+            {Math.round(weather.temperature_2m)}°C
+          </strong>
+
+          <button type="button" onClick={onSaveCity}>
+            Save City
+          </button>
+        </div>
       </div>
 
       <div className="location-details">
