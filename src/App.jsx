@@ -227,6 +227,23 @@ function App() {
       }
     }
 
+    async function deleteSavedCity(id) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/saved-cities/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok){
+          throw new Error("Unable to delete saved city.");
+        }
+
+        await loadSavedCities();
+        setStatusMessage("Saved city deleted");
+      } catch (error) {
+        setStatusMessage(error.message);
+      }
+    }
+
     async function loadWeatherForLocation(locationResult) {
       setStatusMessage("Loading weather data...");
       setLocation(null);
@@ -456,6 +473,7 @@ function App() {
 
               <div className="recent-search-list">
                 {savedCities.map((savedCity) => (
+                  <div className="saved-city-item" key={savedCity.id}>
                   <button
                     key={savedCity.id}
                     type="button"
@@ -463,6 +481,14 @@ function App() {
                     >
                       {savedCity.label}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteSavedCity(savedCity.id)}
+                      aria-label={`Delete saved city ${savedCity.label}`}
+                      >
+                        Delete
+                      </button>
+                    </div>
                 ))}
               </div>
               </div>

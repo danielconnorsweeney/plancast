@@ -59,7 +59,7 @@ app.post("/api/saved-cities", (request, response) => {
         longitude,
     };
 
-    savedCities.push(newCity, ...savedCities);
+    savedCities.unshift(newCity);
 
     response.status(201).json(newCity);
 });
